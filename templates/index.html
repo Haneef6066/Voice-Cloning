@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>🎙️ Voice Cloning Demo (XTTS v2)</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --accent: #0066ff;
+      --muted: #6b7280;
+      --glass: rgba(255, 255, 255, 0.6);
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 100%);
+      color: #111827;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 28px auto;
+      padding: 20px
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    h1 .logo {
+      font-size: 22px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px
+    }
+
+    @media (max-width:900px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06)
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    label {
+      display: inline-block;
+      margin-bottom: 6px;
+      font-weight: 600
+    }
+
+    input[type=text],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e6e9ef;
+      background: #fff
+    }
+
+    textarea {
+      min-height: 90px
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      cursor: pointer
+    }
+
+    .btn.secondary {
+      background: #e6eefc;
+      color: var(--accent);
+      border: 1px solid #d6e6ff
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid rgba(0, 102, 255, 0.12)
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    .small {
+      padding: 8px 10px;
+      font-size: 14px
+    }
+
+    .voices-list {
+      margin-top: 12px
+    }
+
+    select#voices {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e6e9ef
+    }
+
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .status {
+      margin-top: 8px;
+      color: var(--accent);
+      font-weight: 600
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 12px;
+      border-radius: 8px;
+      background: var(--glass);
+      padding: 8px
+    }
+
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1><span class="logo">🎤</span> Voice Clone Library</h1>
+      <div class="muted">Local demo • XTTS v2</div>
+    </header>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2 style="margin-top:0">Create a voice clone</h2>
+          <p class="muted">Upload a 20–30s sample or record live. We'll store the clone and generate a short preview.
+          </p>
+          <div style="margin-top:10px">
+            <label>Name</label>
+            <input id="cloneName" placeholder="e.g. Alice" />
+          </div>
+          <div style="margin-top:10px">
+            <label>Language</label>
+            <select id="cloneLang">
+              <option value="en">English (Standard)</option>
+              <option value="en">Indian English</option>
+              <option value="hi">Hindi</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="it">Italian</option>
+              <option value="pt">Portuguese</option>
+              <option value="pl">Polish</option>
+              <option value="tr">Turkish</option>
+              <option value="ru">Russian</option>
+              <option value="nl">Dutch</option>
+              <option value="cs">Czech</option>
+              <option value="ar">Arabic</option>
+              <option value="zh-cn">Chinese</option>
+              <option value="ja">Japanese</option>
+              <option value="ko">Korean</option>
+              <option value="hu">Hungarian</option>
+            </select>
+            <div class="muted" style="font-size:12px; margin-top:4px">💡 <strong>Important:</strong> For Indian accent,
+              use a clear 20-30s sample with strong Indian accent. The model learns accent from your sample!</div>
+          </div>
+          <div style="margin-top:10px">
+            <label>Sample text (optional)</label>
+            <input id="sampleText" value="This is a cloned voice sample." />
+          </div>
+          <div style="margin-top:12px">
+            <label>Upload audio</label>
+            <input type="file" id="cloneFile" accept="audio/*" />
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="createClone()">Create Clone</button>
+            <button id="startLiveBtn" class="btn secondary small" onclick="startLive()">🔴 Start Live</button>
+            <button id="stopLiveBtn" class="btn ghost small" onclick="stopLive()" disabled>⏹️ Stop</button>
+          </div>
+          <div id="synthStatus" class="status"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h3 style="margin-top:0">Synthesize</h3>
+          <label>Selected voice</label>
+          <div class="row">
+            <select id="voices"></select>
+            <button class="btn secondary small" onclick="loadVoices()">Refresh</button>
+            <button class="btn ghost small" onclick="previewVoice()">Preview</button>
+            <button class="btn small" onclick="selectVoice()">Select</button>
+          </div>
+          <div id="selectedInfo" class="muted" style="margin-top:8px"></div>
+
+          <!-- Advanced Settings -->
+          <details
+            style="margin-top:12px; border:1px solid #e6e9ef; border-radius:8px; padding:10px; background:#f9fafb;">
+            <summary style="cursor:pointer; font-weight:600; color:var(--accent);">Advanced Settings</summary>
+            <div style="margin-top:10px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+              <div>
+                <label style="font-size:13px">Temperature: <span id="tempVal">0.75</span></label>
+                <input type="range" id="temperature" min="0.1" max="1.0" step="0.05" value="0.75"
+                  oninput="document.getElementById('tempVal').innerText=this.value" style="width:100%">
+              </div>
+              <div>
+                <label style="font-size:13px">Top P: <span id="topPVal">0.8</span></label>
+                <input type="range" id="top_p" min="0.1" max="1.0" step="0.05" value="0.8"
+                  oninput="document.getElementById('topPVal').innerText=this.value" style="width:100%">
+              </div>
+              <div>
+                <label style="font-size:13px">Top K: <span id="topKVal">50</span></label>
+                <input type="range" id="top_k" min="1" max="100" step="1" value="50"
+                  oninput="document.getElementById('topKVal').innerText=this.value" style="width:100%">
+              </div>
+              <div>
+                <label style="font-size:13px">Repetition Penalty: <span id="repVal">5.0</span></label>
+                <input type="range" id="repetition_penalty" min="1.0" max="10.0" step="0.1" value="5.0"
+                  oninput="document.getElementById('repVal').innerText=this.value" style="width:100%">
+              </div>
+            </div>
+          </details>
+
+          <div style="margin-top:12px">
+            <label>Language/Accent</label>
+            <select id="synthLang">
+              <option value="en">English (Standard)</option>
+              <option value="en">Indian English</option>
+              <option value="hi">Hindi</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="it">Italian</option>
+              <option value="pt">Portuguese</option>
+              <option value="pl">Polish</option>
+              <option value="tr">Turkish</option>
+              <option value="ru">Russian</option>
+              <option value="nl">Dutch</option>
+              <option value="cs">Czech</option>
+              <option value="ar">Arabic</option>
+              <option value="zh-cn">Chinese</option>
+              <option value="ja">Japanese</option>
+              <option value="ko">Korean</option>
+              <option value="hu">Hungarian</option>
+            </select>
+            <div class="muted" style="font-size:12px; margin-top:4px">💡 <strong>Accent tip:</strong> Select "Indian
+              English" for English text with Indian accent, or "Hindi" for Hindi text. Accent quality depends on your
+              voice sample!</div>
+          </div>
+
+          <div style="margin-top:12px">
+            <textarea id="ttsText">Hello, this text will be spoken by the selected voice.</textarea>
+            <div style="margin-top:8px" class="actions">
+              <button class="btn" id="synthBtn" onclick="synthesize()">Synthesize</button>
+            </div>
+            <audio id="player" controls style="margin-top:10px"></audio>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card">
+          <h3 style="margin-top:0">Voice Library</h3>
+          <p class="muted">Browse created clones and preview their auto-generated sample.</p>
+          <div class="voices-list">
+            <!-- populated by JS -->
+          </div>
+          <div style="margin-top:12px">
+            <label>Preview player</label>
+            <audio id="previewPlayer" controls></audio>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>Stored locally in <code>cloned/</code>. Provide 20–30s sample for best results.</footer>
+  </div>
+
+  <script>
+    let voices = [];
+    let selectedVoiceId = null;
+
+    async function createClone() {
+      const fileEl = document.getElementById('cloneFile');
+      const name = document.getElementById('cloneName').value || `voice_${Math.random().toString(36).slice(2, 8)}`;
+      const lang = document.getElementById('cloneLang').value || 'en';
+      const sampleText = document.getElementById('sampleText').value || '';
+      if (!fileEl.files.length) { alert('Select an audio file to upload'); return; }
+      const fd = new FormData();
+      fd.append('audio', fileEl.files[0]);
+      fd.append('name', name);
+      fd.append('language', lang);
+      fd.append('sample_text', sampleText);
+      document.getElementById('synthStatus').innerText = 'Uploading and creating clone...';
+      try {
+        const res = await fetch('/create_clone', { method: 'POST', body: fd });
+        const j = await res.json();
+        if (j.error) { alert('Error: ' + j.error); document.getElementById('synthStatus').innerText = ''; return; }
+        document.getElementById('synthStatus').innerText = 'Clone created: ' + j.name;
+        await loadVoices();
+      } catch (e) {
+        alert('Create clone failed: ' + e.message);
+        document.getElementById('synthStatus').innerText = '';
+      }
+    }
+
+    async function loadVoices() {
+      try {
+        const r = await fetch('/voices');
+        const j = await r.json();
+        voices = j.voices || [];
+        const sel = document.getElementById('voices'); sel.innerHTML = '';
+        const lib = document.querySelector('.voices-list'); lib.innerHTML = '';
+        voices.forEach(v => {
+          const o = document.createElement('option'); o.value = v.id; o.text = `${v.name} (${v.id})`; sel.appendChild(o);
+
+          // also append a compact library item
+          const div = document.createElement('div');
+          div.style.padding = '8px'; div.style.borderBottom = '1px solid #f1f3f5';
+          div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center';
+          const left = document.createElement('div'); left.innerText = v.name + ' (' + v.id + ')'; left.style.fontWeight = '600';
+          const right = document.createElement('div');
+          const play = document.createElement('button'); play.className = 'btn ghost small'; play.innerText = 'Play';
+          play.onclick = () => { document.getElementById('previewPlayer').src = `/cloned/sample_${v.id}.wav`; document.getElementById('previewPlayer').play().catch(() => { }); };
+          const use = document.createElement('button'); use.className = 'btn secondary small'; use.innerText = 'Use';
+          use.onclick = () => { selectedVoiceId = v.id; document.getElementById('selectedInfo').innerText = `Selected: ${v.name} (id=${v.id})`; };
+          right.appendChild(play); right.appendChild(use);
+          div.appendChild(left); div.appendChild(right);
+          lib.appendChild(div);
+        });
+      } catch (e) { console.warn('failed to load voices', e); }
+    }
+
+    function previewVoice() {
+      const sel = document.getElementById('voices');
+      if (!sel.value) return alert('Select a voice first');
+      const id = sel.value;
+      const url = `/cloned/sample_${id}.wav`;
+      const player = document.getElementById('player');
+      player.src = url; player.play().catch(() => { });
+    }
+
+    function selectVoice() {
+      const sel = document.getElementById('voices');
+      if (!sel.value) return alert('Select a voice');
+      selectedVoiceId = sel.value;
+      const v = voices.find(x => x.id === selectedVoiceId);
+      document.getElementById('selectedInfo').innerText = v ? `Selected: ${v.name} (id=${v.id})` : `Selected id=${selectedVoiceId}`;
+    }
+
+    async function synthesize() {
+      if (!selectedVoiceId) return alert('Select a voice first');
+      const text = document.getElementById('ttsText').value;
+      if (!text) return alert('Enter text to synthesize');
+      const temperature = document.getElementById('temperature').value;
+      const top_p = document.getElementById('top_p').value;
+      const top_k = document.getElementById('top_k').value;
+      const repetition_penalty = document.getElementById('repetition_penalty').value;
+      const language = document.getElementById('synthLang').value || 'en';
+
+      document.getElementById('synthStatus').innerText = 'Synthesizing...';
+      try {
+        const res = await fetch('/speak', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            voice_id: selectedVoiceId,
+            language,
+            temperature,
+            top_p,
+            top_k,
+            repetition_penalty
+          })
+        });
+        if (!res.ok) { const e = await res.json(); alert('TTS error: ' + (e.error || JSON.stringify(e))); document.getElementById('synthStatus').innerText = ''; return; }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const player = document.getElementById('player');
+        player.src = url; player.play().catch(() => { });
+        document.getElementById('synthStatus').innerText = 'Done';
+      } catch (e) { alert('Synthesis failed: ' + e.message); document.getElementById('synthStatus').innerText = ''; }
+    }
+
+    // initialize
+    loadVoices();
+  </script>
+  <script>
+    // Live recording controls for creating a clone directly from microphone
+    let liveRecorder = null;
+    let liveChunks = [];
+    const startLiveBtn = document.getElementById('startLiveBtn');
+    const stopLiveBtn = document.getElementById('stopLiveBtn');
+
+    async function startLive() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Recording not supported in this browser');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        liveChunks = [];
+        liveRecorder = new MediaRecorder(stream);
+        liveRecorder.ondataavailable = e => { if (e.data.size > 0) liveChunks.push(e.data); };
+        liveRecorder.onstop = async () => {
+          const blob = new Blob(liveChunks, { type: 'audio/webm' });
+          await uploadLiveBlobAsClone(blob);
+        };
+        liveRecorder.start();
+        startLiveBtn.disabled = true; stopLiveBtn.disabled = false;
+        document.getElementById('synthStatus').innerText = 'Live recording...';
+      } catch (e) { alert('Could not access microphone: ' + e.message); }
+    }
+
+    function stopLive() {
+      if (liveRecorder && liveRecorder.state !== 'inactive') {
+        liveRecorder.stop();
+        startLiveBtn.disabled = false; stopLiveBtn.disabled = true;
+        document.getElementById('synthStatus').innerText = 'Processing live recording...';
+      }
+    }
+
+    async function uploadLiveBlobAsClone(blob) {
+      const name = document.getElementById('cloneName').value || `live_${Math.random().toString(36).slice(2, 8)}`;
+      const lang = document.getElementById('cloneLang').value || 'en';
+      const sampleText = document.getElementById('sampleText').value || '';
+      const fd = new FormData();
+      fd.append('audio', blob, `${name}.webm`);
+      fd.append('name', name);
+      fd.append('language', lang);
+      fd.append('sample_text', sampleText);
+      try {
+        const res = await fetch('/create_clone', { method: 'POST', body: fd });
+        const j = await res.json();
+        if (j.error) { alert('Live clone error: ' + j.error); document.getElementById('synthStatus').innerText = ''; return; }
+        document.getElementById('synthStatus').innerText = 'Live clone created: ' + j.name;
+        await loadVoices();
+        // auto-select
+        selectedVoiceId = j.id;
+        document.getElementById('selectedInfo').innerText = `Selected: ${j.name} (id=${j.id})`;
+      } catch (e) { alert('Upload failed: ' + e.message); document.getElementById('synthStatus').innerText = ''; }
+    }
+  </script>
+</body>
+
+</html>
